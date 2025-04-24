@@ -1,0 +1,301 @@
+.container {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2rem 1rem;
+  background: radial-gradient(ellipse at top left, #0f172a 0%, #1e293b 100%);
+  font-family: 'Orbitron', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  color: white;
+  position: relative;
+  overflow: hidden;
+}
+
+.branding {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.logo {
+  height: 60px;
+  width: auto;
+  object-fit: contain;
+}
+
+.brand-name {
+  font-size: 2rem;
+  font-weight: bold;
+  color: #00ffff;
+  text-shadow: 0 0 6px #0ff;
+  letter-spacing: 2px;
+}
+
+.card {
+  background-color: #1a1a2e;
+  padding: 2.5rem 2rem;
+  border-radius: 24px;
+  box-shadow: 0 15px 30px rgba(0, 255, 255, 0.1);
+  max-width: 850px;
+  width: 100%;
+  border: 2px solid #00ffff50;
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+  position: relative;
+}
+
+.title {
+  font-size: 2.75rem;
+  font-weight: 800;
+  text-align: center;
+  background: linear-gradient(to right, #00cfff, #ffff00);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.step h2 {
+  font-size: 1.5rem;
+  text-align: center;
+  color: #00ffff;
+  margin-bottom: 1rem;
+}
+
+.select {
+  width: 100%;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  background: #0d0d2b;
+  color: white;
+  border: 1px solid #00ffff60;
+  border-radius: 0.5rem;
+  font-size: 1rem;
+}
+
+textarea.select {
+  resize: vertical;
+  font-family: inherit;
+  min-height: 120px;
+  background: #0d0d2b;
+  color: white;
+  border: 1px solid #00ffff60;
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+.btn-green, .btn-purple {
+  font-weight: 600;
+  border-radius: 12px;
+  padding: 0.75rem;
+  width: 100%;
+  cursor: pointer;
+  border: none;
+  margin-top: 1rem;
+  transition: transform 0.2s ease-in-out, box-shadow 0.3s ease-in-out;
+}
+
+.btn-green {
+  background: linear-gradient(to right, #00ffcc, #00bfff);
+  color: black;
+  box-shadow: 0 0 10px #00ffeeaa;
+}
+
+.btn-green:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+}
+
+.btn-purple {
+  background: linear-gradient(to right, #ff00cc, #cc00ff);
+  color: white;
+  box-shadow: 0 0 10px #ff00ccaa;
+}
+
+.btn-purple:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.4);
+}
+
+.status {
+  text-align: center;
+  font-size: 1.1rem;
+  color: #ccc;
+}
+
+.spinner {
+  animation: spin 1s linear infinite;
+  display: inline-block;
+  margin-right: 0.5rem;
+  color: #00ffff;
+  font-size: 1.5rem;
+}
+
+.spinner.big {
+  font-size: 2.5rem;
+  color: #00ffcc;
+}
+
+.subtext {
+  font-size: 0.9rem;
+  color: #cccccc;
+  margin-top: 0.5rem;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 1.5rem;
+  margin-top: 1rem;
+}
+
+.chart {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 8px 20px rgba(0, 255, 255, 0.08);
+  object-fit: cover;
+}
+
+.example-buttons {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1rem;
+}
+
+.example-buttons button {
+  background: #334155;
+  color: white;
+  border: none;
+  padding: 0.5rem 1rem;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background 0.2s ease-in-out;
+}
+
+.example-buttons button:hover {
+  background: #475569;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 768px) {
+  .card {
+    padding: 1.5rem;
+  }
+
+  .title {
+    font-size: 2rem;
+  }
+
+  .step h2 {
+    font-size: 1.2rem;
+  }
+
+  .select, .btn-green, .btn-purple {
+    font-size: 0.9rem;
+  }
+
+  .image-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+select:focus, .btn-green:focus, .btn-purple:focus {
+  outline: none;
+  box-shadow: 0 0 0 3px rgba(0, 255, 255, 0.6);
+}
+
+select:focus {
+  border-color: #00ffff;
+}
+
+.terminal-loader pre {
+  background-color: #111;
+  color: #0f0;
+  font-family: 'Courier New', monospace;
+  padding: 1rem;
+  border-radius: 10px;
+  height: 300px;
+  overflow-y: auto;
+  box-shadow: 0 0 12px rgba(0, 255, 0, 0.2);
+  margin-top: 1rem;
+}
+
+canvas#background-particles {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  opacity: 0.4;
+}
+.result-card {
+  background: linear-gradient(to right, #0f172a, #1a1a2e);
+  border: 2px solid #00ffff33;
+  border-radius: 20px;
+  padding: 2rem;
+  margin-top: 2rem;
+  box-shadow: 0 10px 25px rgba(0, 255, 255, 0.08);
+  color: #e2e8f0;
+  font-size: 1rem;
+  line-height: 1.7;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease-in-out;
+}
+
+.result-card::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle at center, #00ffff33 0%, transparent 60%);
+  z-index: 0;
+  animation: pulseGlow 6s linear infinite;
+}
+
+.result-card h3 {
+  position: relative;
+  z-index: 1;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  font-weight: 700;
+  color: #00ffff;
+  text-shadow: 0 0 8px #00ffff88;
+  letter-spacing: 1px;
+}
+
+.result-card p {
+  position: relative;
+  z-index: 1;
+  margin: 0.75rem 0;
+  line-height: 1.6;
+  color: #d1d5db;
+  font-size: 1.05rem;
+}
+
+@keyframes pulseGlow {
+  0% {
+    transform: rotate(0deg);
+    opacity: 0.1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+  100% {
+    transform: rotate(360deg);
+    opacity: 0.1;
+  }
+}
