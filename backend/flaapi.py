@@ -18,7 +18,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 vectorizer = None
 model = None
 
-@app.route("/setup", methods=["GET"])
 def setup():
     global vectorizer, model
     try:
@@ -33,9 +32,17 @@ def setup():
         else:
             print("⚠️ Trained model not found. Run training first.")
 
-        return jsonify({"status": "setup complete"})
+        return {"status": "setup complete"}
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        print(f"❌ Setup error: {e}")
+        return {"error": str(e)}
+
+@app.route("/setup", methods=["GET"])
+def setup_route():
+    result = setup()
+    if "error" in result:
+        return jsonify(result), 500
+    return jsonify(result)
 
 @app.route("/train", methods=["POST"])
 def train():
@@ -127,6 +134,6 @@ def metrics():
 
 if __name__ == "__main__":
     import os
-    setup()
+    setup()  # Safe call
     port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=False)
