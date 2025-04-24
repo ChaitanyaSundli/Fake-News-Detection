@@ -819,6 +819,12 @@ def predict_text(model, vectorizer, text, device, threshold=0.5):
     }
 # Main function to run the entire pipeline
 def main():
+    parser = argparse.ArgumentParser(description="Fake News Detector Trainer")
+    parser.add_argument('--train', action='store_true', help='Enable training mode')
+    parser.add_argument('dataset_path', nargs='?', default='news.csv', help='Path to dataset file')
+    parser.add_argument('model_choice', nargs='?', default='1', help='Model type: 1=BiLSTM, 2=CNN, 3=LSTM')
+    args = parser.parse_args()
+  
     # Set random seed for reproducibility
     set_seed(42)
     
@@ -826,19 +832,20 @@ def main():
     device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
     print(f"Using device: {device}")
     
-    # Load and preprocess the dataset
+    if not args.train:
+        print("ℹ️ No training flag provided. Exiting.")
+        return
+
     try:
-        # You would need to specify the path to your dataset file
-        import sys
-        dataset_path = sys.argv[2] if len(sys.argv) > 2 else "backend/news.csv"
-        df = load_data(dataset_path)
-        print("Dataset loaded successfully!")
+        print(f"📂 Loading dataset from: {args.dataset_path}")
+        df = load_data(args.dataset_path)
+        print("✅ Dataset loaded successfully!")
     except Exception as e:
-        print(f"Error loading dataset: {e}")
+        print(f"❌ Error loading dataset: {e}")
         return
     
     # Preprocess text data
-    print("Preprocessing text data...")
+    print("🧼 Preprocessing text data...")
     df['processed_text'] = df['text'].apply(lambda x: preprocess_text(x, remove_stopwords=True))
     
     # Convert string labels to integers
@@ -890,29 +897,14 @@ def main():
     pad_idx = 0
     
     # Choose a model architecture
-    model_choice = sys.argv[3] if len(sys.argv) > 3 else input("Choose model architecture (1: BiLSTM with Attention, 2: TextCNN, 3: Regular LSTM): ")
-
     
-    if model_choice == '1':
-        print("Creating BiLSTM with Attention model...")
-        model = BiLSTMAttention(
-            vocab_size, embedding_dim, hidden_dim, output_dim, 
-            n_layers, dropout, pad_idx, embedding_matrix
-        )
-    elif model_choice == '2':
-        print("Creating TextCNN model...")
-        filter_sizes = [2, 3, 4, 5]
-        n_filters = 100
-        model = TextCNN(
-            vocab_size, embedding_dim, n_filters, filter_sizes, 
-            output_dim, dropout, pad_idx, embedding_matrix
-        )
+    if args.model_choice == '2':
+        model = TextCNN(vocab_size, embedding_dim, 100, [2, 3, 4, 5], output_dim, dropout, pad_idx, embedding_matrix)
+    elif args.model_choice == '3':
+        model = LSTMClassifier(vocab_size, embedding_dim, hidden_dim, output_dim, n_layers, True, dropout, pad_idx, embedding_matrix)
     else:
-        print("Creating LSTM model...")
-        model = LSTMClassifier(
-            vocab_size, embedding_dim, hidden_dim, output_dim, 
-            n_layers, bidirectional, dropout, pad_idx, embedding_matrix
-        )
+        model = BiLSTMAttention(vocab_size, embedding_dim, hidden_dim, output_dim, n_layers, dropout, pad_idx, embedding_matrix)
+
     
     # Define optimizer and loss function
     optimizer = Adam(model.parameters(), lr=1e-3)
