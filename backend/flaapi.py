@@ -38,11 +38,35 @@ def setup():
         return {"error": str(e)}
 
 @app.route("/setup", methods=["GET"])
-def setup_route():
-    result = setup()
-    if "error" in result:
-        return jsonify(result), 500
-    return jsonify(result)
+def setup():
+    global vectorizer, model
+    try:
+        vectorizer, model = setup_and_prepare("news.csv", device)
+
+        # Load the trained model weights
+        model_path = "best_fake_news_model.pt"
+        if os.path.exists(model_path):
+            model.load_state_dict(torch.load(model_path, map_location=device))
+            print("✅ Model weights loaded successfully.")
+
+            # 🛠️ Load the saved vectorizer word_index to match vocabulary size
+            if os.path.exists("word_index.pt"):
+                word_index = torch.load("word_index.pt")
+                vectorizer.word_index = word_index
+                vectorizer.vocab_size = len(word_index)
+                print(f"✅ Loaded saved vocabulary with {vectorizer.vocab_size} words.")
+            else:
+                print("⚠️ No saved word_index found. Continuing with new vectorizer.")
+
+            model.eval()
+
+        else:
+            print("⚠️ Trained model not found. Run training first.")
+
+        return jsonify({"status": "setup complete"})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 
 @app.route("/train", methods=["POST"])
 def train():
