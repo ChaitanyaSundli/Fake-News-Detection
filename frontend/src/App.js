@@ -328,9 +328,14 @@ export default function App() {
               </motion.div>
               
             )}
-            <button className="btn-purple" onClick={handleDownload}>
-              🎓 Download Verification Certificate
-            </button>
+            <button
+  className="btn-purple"
+  onClick={handleDownload}
+  disabled={!predictionResult}
+>
+  🎓 Download Verification Certificate
+</button>
+
             <button
   className="btn-green"
   onClick={() => {
