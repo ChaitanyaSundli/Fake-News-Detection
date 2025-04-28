@@ -24,8 +24,22 @@ def setup():
     model_name = request.args.get("model", "bilstm.pt")
 
     try:
-        vectorizer, model = setup_and_prepare("news.csv", device)
+        # Step 1: Create empty vectorizer
+        vectorizer = TextVectorizer()
 
+        # Step 2: Load word index mapping
+        if os.path.exists("word_index.pt"):
+            word_index = torch.load("word_index.pt")
+            vectorizer.word_index = word_index
+            vectorizer.vocab_size = len(word_index)
+            print(f"✅ Loaded vocabulary with {vectorizer.vocab_size} words.")
+        else:
+            return jsonify({"error": "Word index file not found!"}), 500
+
+        # Step 3: Create model
+        model = BiLSTMAttention(vectorizer.vocab_size).to(device)
+
+        # Step 4: Load model weights
         if os.path.exists(model_name):
             model.load_state_dict(torch.load(model_name, map_location=device))
             model.eval()
@@ -34,15 +48,11 @@ def setup():
         else:
             return jsonify({"error": f"Model file '{model_name}' not found."}), 404
 
-        if os.path.exists("word_index.pt"):
-            word_index = torch.load("word_index.pt")
-            vectorizer.word_index = word_index
-            vectorizer.vocab_size = len(word_index)
-
         return jsonify({"status": "Model setup complete", "model": model_name})
 
     except Exception as e:
         return jsonify({"error": str(e)}), 500
+
 
 @app.route("/predict", methods=["POST"])
 def predict():
