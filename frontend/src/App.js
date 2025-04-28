@@ -1,91 +1,180 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import torch
-import os
+import React, { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import './App.css';
+import { Loader2 } from 'lucide-react';
+import html2canvas from 'html2canvas';
+import jsPDF from 'jspdf';
 
-from fakenewscode import (
-    setup_and_prepare, TextVectorizer, BiLSTMAttention,
-    preprocess_text, contains_negation
-)
+export default function App() {
+  const [selectedModel, setSelectedModel] = useState('bilstm.pt');
+  const [isLoading, setIsLoading] = useState(false);
+  const [userInput, setUserInput] = useState('');
+  const [predictionResult, setPredictionResult] = useState(null);
 
-app = Flask(__name__)
-CORS(app)
+  const handleModelChange = async (e) => {
+    const modelName = e.target.value;
+    setSelectedModel(modelName);
+    setPredictionResult(null);
+    setUserInput('');
+    setIsLoading(true);
+    try {
+      const response = await fetch(`http://localhost:5000/setup?model=${modelName}`);
+      const data = await response.json();
+      console.log('Setup complete:', data);
+    } catch (error) {
+      console.error('Setup error:', error);
+      alert('Failed to load model. Please check backend.');
+    }
+    setIsLoading(false);
+  };
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+  const handlePredict = async () => {
+    if (!userInput.trim()) {
+      alert('Please enter some text.');
+      return;
+    }
+    setIsLoading(true);
+    try {
+      const res = await fetch('http://localhost:5000/predict', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ text: userInput })
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setPredictionResult(data);
+      } else {
+        alert(data.error || "Prediction failed.");
+      }
+    } catch (err) {
+      console.error('Prediction error:', err);
+      alert('Failed to connect to backend.');
+    }
+    setIsLoading(false);
+  };
 
-# Global objects
-vectorizer = None
-model = None
-current_model_name = None
+  const handleDownload = () => {
+    if (!predictionResult) return;
 
-@app.route("/setup", methods=["GET"])
-def setup():
-    global vectorizer, model, current_model_name
-    model_name = request.args.get("model", "bilstm.pt")
+    const logo = new Image();
+    logo.src = `${window.location.origin}/logo.png`; // Adjust if needed
 
-    try:
-        vectorizer, model = setup_and_prepare("news.csv", device)
+    logo.onload = () => {
+      const pdf = new jsPDF('landscape', 'mm', 'a4');
+      const pageWidth = pdf.internal.pageSize.getWidth();
 
-        if os.path.exists(model_name):
-            model.load_state_dict(torch.load(model_name, map_location=device))
-            model.eval()
-            current_model_name = model_name
-            print(f"✅ Model '{model_name}' loaded successfully.")
-        else:
-            return jsonify({"error": f"Model file '{model_name}' not found."}), 404
+      pdf.setFillColor(255, 255, 255);
+      pdf.rect(10, 10, pageWidth - 20, 190, 'F');
 
-        if os.path.exists("word_index.pt"):
-            word_index = torch.load("word_index.pt")
-            vectorizer.word_index = word_index
-            vectorizer.vocab_size = len(word_index)
+      pdf.addImage(logo, 'PNG', pageWidth / 2 - 20, 20, 40, 40);
+      pdf.setFontSize(22);
+      pdf.setTextColor('#00ffff');
+      pdf.text('News Veritas - Verification Certificate', pageWidth / 2, 75, { align: 'center' });
 
-        return jsonify({"status": "Model setup complete", "model": model_name})
+      const conf = (predictionResult.confidence * 100).toFixed(2);
+      const fake = (predictionResult.fake_probability * 100).toFixed(2);
+      const real = (predictionResult.real_probability * 100).toFixed(2);
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+      pdf.setFontSize(16);
+      pdf.setTextColor('#000000');
+      pdf.text(`Article Status: ${predictionResult.prediction}`, pageWidth / 2, 90, { align: 'center' });
+      pdf.text(`Confidence: ${conf}%`, pageWidth / 2, 100, { align: 'center' });
+      pdf.text(`(Fake: ${fake}% | Real: ${real}%)`, pageWidth / 2, 108, { align: 'center' });
+      pdf.text(`Verified on: ${new Date().toLocaleString()}`, pageWidth / 2, 116, { align: 'center' });
 
-@app.route("/predict", methods=["POST"])
-def predict():
-    global vectorizer, model
-    try:
-        if model is None or vectorizer is None:
-            return jsonify({"error": "Model not initialized. Call /setup first."}), 500
+      pdf.setFontSize(12);
+      pdf.text('Verified Text:', 20, 135);
+      const splitText = pdf.splitTextToSize(predictionResult.processed_text || userInput, pageWidth - 40);
+      pdf.text(splitText, 20, 143);
 
-        data = request.get_json()
-        text = data.get("text", "")
-        if len(text.strip()) < 10:
-            return jsonify({"error": "Text too short."}), 400
+      pdf.setTextColor('#888');
+      pdf.text('Generated by News Veritas AI', pageWidth / 2, 190, { align: 'center' });
 
-        processed_text = preprocess_text(text)
-        negation_info = contains_negation(text)
-        sequence = vectorizer.transform([processed_text])
-        input_tensor = torch.tensor(sequence).to(device)
+      pdf.save('News_Verification_Certificate.pdf');
+      alert('✅ Certificate downloaded successfully!');
+    };
+  };
 
-        model.eval()
-        with torch.no_grad():
-            outputs = model(input_tensor)
-            probs = torch.nn.functional.softmax(outputs, dim=1)
+  useEffect(() => {
+    handleModelChange({ target: { value: selectedModel } });
+  }, []);
 
-        fake_prob = probs[0, 1].item()
-        real_prob = probs[0, 0].item()
+  return (
+    <div className="container">
+      <motion.div className="branding">
+        <img src="/logo.png" alt="Logo" className="logo" />
+        <h1 className="brand-name">News Veritas</h1>
+      </motion.div>
 
-        if negation_info['has_negation']:
-            fake_prob, real_prob = real_prob, fake_prob
+      <motion.div className="card">
+        <h1 className="title">🧠 Fake News Detection</h1>
 
-        prediction = 'FAKE' if fake_prob >= 0.5 else 'REAL'
+        <div className="step">
+          <label>Select a Model:</label>
+          <select
+            value={selectedModel}
+            onChange={handleModelChange}
+            className="select"
+            disabled={isLoading}
+          >
+            <option value="bilstm.pt">BiLSTM + Attention</option>
+            <option value="cnn.pt">TextCNN</option>
+            <option value="lstm.pt">LSTM</option>
+          </select>
+        </div>
 
-        return jsonify({
-            "prediction": prediction,
-            "fake_probability": fake_prob,
-            "real_probability": real_prob,
-            "confidence": max(fake_prob, real_prob),
-            "negation_detected": negation_info['has_negation'],
-            "negation_count": negation_info['negation_count'],
-            "processed_text": processed_text
-        })
+        <div className="step">
+          <label>Enter News Text:</label>
+          <textarea
+            className="select"
+            rows="5"
+            value={userInput}
+            onChange={(e) => setUserInput(e.target.value)}
+            placeholder="Type or paste your news article here..."
+            disabled={isLoading}
+          />
 
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+          <div className="example-buttons">
+            <button onClick={() => setUserInput("Breaking: The president has signed a new executive order...")}>Example 1</button>
+            <button onClick={() => setUserInput("NASA confirms Earth has two moons!")}>Example 2</button>
+          </div>
 
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
+          <button onClick={handlePredict} className="btn-green" disabled={isLoading}>
+            {isLoading ? <Loader2 className="spinner" /> : "🔍 Predict"}
+          </button>
+        </div>
+
+        {predictionResult && (
+          <motion.div
+            className="result-card"
+            style={{ backgroundColor: predictionResult.confidence > 0.85 ? '#dcfce7' : predictionResult.confidence > 0.6 ? '#fef9c3' : '#fee2e2' }}
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <h3 className={predictionResult.prediction === 'FAKE' ? 'text-red' : 'text-green'}>
+              {predictionResult.prediction === 'FAKE' ? '🚨 FAKE NEWS DETECTED' : '✅ REAL NEWS'}
+            </h3>
+            <p><strong>Confidence:</strong> {(predictionResult.confidence * 100).toFixed(2)}%</p>
+            <p className="subtext">
+              (Fake: {(predictionResult.fake_probability * 100).toFixed(2)}% | Real: {(predictionResult.real_probability * 100).toFixed(2)}%)
+            </p>
+            {predictionResult.negation_detected && (
+              <p className="subtext">⚠️ {predictionResult.negation_count} negation word(s) detected.</p>
+            )}
+            {predictionResult.processed_text && (
+              <p className="subtext">🔍 Processed Text: {predictionResult.processed_text}</p>
+            )}
+          </motion.div>
+        )}
+
+        {predictionResult && (
+          <div style={{ marginTop: '1rem' }}>
+            <button className="btn-purple" onClick={handleDownload}>
+              🎓 Download Certificate
+            </button>
+          </div>
+        )}
+      </motion.div>
+    </div>
+  );
+}
