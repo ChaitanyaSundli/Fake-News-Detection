@@ -129,6 +129,99 @@ export default function App() {
                   <img
                     key={idx}
                     src={`https://fake-news-detection-fcr3.onrender.com/static/${img}`}
+            {step === 4 && (
+  <motion.div className="step">
+    <h2>🧠 Try a Prediction</h2>
+    <textarea
+      rows="5"
+      className="select"
+      value={userInput}
+      onChange={(e) => setUserInput(e.target.value)}
+      placeholder="Enter a news article..."
+    />
+
+    <div className="example-buttons">
+      <button onClick={() => setUserInput("Breaking: The president has signed a new executive order...")}>Example 1</button>
+      <button onClick={() => setUserInput("NASA confirms Earth has two moons!")}>Example 2</button>
+    </div>
+
+    <button
+      className="btn-green"
+      onClick={async () => {
+        try {
+          const res = await fetch('http://localhost:5000/predict', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ text: userInput })
+          });
+          const data = await res.json();
+
+          if (res.ok) {
+            setPredictionResult(data);
+          } else {
+            alert(data.error || "Prediction failed.");
+            setPredictionResult(null);
+          }
+        } catch (err) {
+          alert("Failed to connect to the backend.");
+          console.error(err);
+        }
+      }}
+    >
+      🔍 Predict
+    </button>
+
+    {predictionResult && (
+      <motion.div
+        className="result-card"
+        style={{ backgroundColor: predictionResult.confidence > 0.85 ? '#dcfce7' : predictionResult.confidence > 0.6 ? '#fef9c3' : '#fee2e2' }}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+      >
+        <h3 className={predictionResult.prediction === 'FAKE' ? 'text-red' : 'text-green'}>
+          {predictionResult.prediction === 'FAKE' ? '🚨 FAKE NEWS DETECTED' : '✅ REAL NEWS'}
+        </h3>
+        <p><strong>Confidence:</strong> {(predictionResult.confidence * 100).toFixed(2)}%</p>
+        <p className="subtext">
+          (Fake: {(predictionResult.fake_probability * 100).toFixed(2)}% | Real: {(predictionResult.real_probability * 100).toFixed(2)}%)
+        </p>
+        {predictionResult.negation_detected && (
+          <p className="subtext">⚠️ Detected <strong>{predictionResult.negation_count}</strong> negation word(s).</p>
+        )}
+        {predictionResult.processed_text && (
+          <p className="subtext">🔍 Processed Text: {predictionResult.processed_text}</p>
+        )}
+      </motion.div>
+    )}
+    
+    <button className="btn-purple" onClick={handleDownload}>
+      🎓 Download Verification Certificate
+    </button>
+    
+    <button
+      className="btn-green"
+      onClick={() => {
+        setUserInput('');
+        setPredictionResult(null);
+      }}
+    >
+      🧹 Clear Result
+    </button>
+    
+    <button
+      className="btn-purple"
+      onClick={() => {
+        setStep(1);
+        setUserInput('');
+        setPredictionResult(null);
+      }}
+    >
+      🔁 Back to Start
+    </button>
+
+  </motion.div>
+)}
+
                     alt={img}
                     className="chart"
                   />
