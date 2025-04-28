@@ -13,6 +13,7 @@ export default function App() {
   const [userInput, setUserInput] = useState('');
   const [predictionResult, setPredictionResult] = useState(null);
   const [page, setPage] = useState('predict'); // 'predict' or 'charts'
+  const [selectedChart, setSelectedChart] = useState('training_metrics.png');
 
   const handleModelChange = async (e) => {
     const modelName = e.target.value;
@@ -190,26 +191,32 @@ export default function App() {
           <>
             <h1 className="title">📈 Training Metrics</h1>
 
-            <div className="image-grid">
-              {[
-                "training_metrics.png",
-                "confusion_matrix.png",
-                "roc_curve.png",
-                "precision_recall_curve.png",
-                "score_distribution.png",
-                "cost_benefit_analysis.png"
-              ].map((img, idx) => (
-                <img
-                  key={idx}
-                  src={`${backendUrl}/static/${img}`}
-                  alt={img}
-                  className="chart"
-                  onError={(e) => console.error(`Failed to load ${img}`, e)}
-                />
-              ))}
+            <div className="step">
+              <label>Select a Chart:</label>
+              <select
+                value={selectedChart}
+                onChange={(e) => setSelectedChart(e.target.value)}
+                className="select"
+              >
+                <option value="training_metrics.png">Training Metrics</option>
+                <option value="confusion_matrix.png">Confusion Matrix</option>
+                <option value="roc_curve.png">ROC Curve</option>
+                <option value="precision_recall_curve.png">Precision-Recall Curve</option>
+                <option value="score_distribution.png">Score Distribution</option>
+                <option value="cost_benefit_analysis.png">Cost Benefit Analysis</option>
+              </select>
             </div>
 
-            <button className="btn-green" style={{ marginTop: '1.5rem' }} onClick={() => setPage('predict')}>
+            <div className="image-grid" style={{ marginTop: '2rem' }}>
+              <img
+                src={`${backendUrl}/static/${selectedChart}`}
+                alt={selectedChart}
+                className="chart"
+                onError={(e) => console.error(`Failed to load ${selectedChart}`, e)}
+              />
+            </div>
+
+            <button className="btn-green" style={{ marginTop: '2rem' }} onClick={() => setPage('predict')}>
               🔙 Back to Prediction
             </button>
           </>
