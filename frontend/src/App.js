@@ -63,7 +63,7 @@ export default function App() {
 
 
   useEffect(() => {
-    fetch('http://localhost:5000/setup')
+    fetch('https://fake-news-detection-fcr3.onrender.com/setup')
       .then((res) => res.json())
       .then((data) => {
         console.log('Setup complete:', data);
@@ -99,7 +99,7 @@ export default function App() {
           line.includes("Saved vectorizer word_index")
         ) {
           eventSource.close();
-          fetch('http://localhost:5000/metrics')
+          fetch('https://fake-news-detection-fcr3.onrender.com/metrics')
             .then(res => res.json())
             .then(metrics => {
               setTrainingImages(metrics.images);
