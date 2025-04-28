@@ -12,6 +12,7 @@ export default function App() {
   const [isLoading, setIsLoading] = useState(false);
   const [userInput, setUserInput] = useState('');
   const [predictionResult, setPredictionResult] = useState(null);
+  const [page, setPage] = useState('predict'); // 'predict' or 'charts'
 
   const handleModelChange = async (e) => {
     const modelName = e.target.value;
@@ -59,7 +60,7 @@ export default function App() {
     if (!predictionResult) return;
 
     const logo = new Image();
-    logo.src = `${window.location.origin}/logo.png`; // Adjust if you put logo elsewhere
+    logo.src = `${window.location.origin}/logo.png`;
 
     logo.onload = () => {
       const pdf = new jsPDF('landscape', 'mm', 'a4');
@@ -109,69 +110,109 @@ export default function App() {
       </motion.div>
 
       <motion.div className="card">
-        <h1 className="title">🧠 Fake News Detection</h1>
+        {page === 'predict' && (
+          <>
+            <h1 className="title">🧠 Fake News Detection</h1>
 
-        <div className="step">
-          <label>Select a Model:</label>
-          <select
-            value={selectedModel}
-            onChange={handleModelChange}
-            className="select"
-            disabled={isLoading}
-          >
-            <option value="bilstm.pt">BiLSTM + Attention</option>
-            <option value="cnn.pt">TextCNN</option>
-            <option value="lstm.pt">LSTM</option>
-          </select>
-        </div>
+            <div className="step">
+              <label>Select a Model:</label>
+              <select
+                value={selectedModel}
+                onChange={handleModelChange}
+                className="select"
+                disabled={isLoading}
+              >
+                <option value="bilstm.pt">BiLSTM + Attention</option>
+                <option value="cnn.pt">TextCNN</option>
+                <option value="lstm.pt">LSTM</option>
+              </select>
+            </div>
 
-        <div className="step">
-          <label>Enter News Text:</label>
-          <textarea
-            className="select"
-            rows="5"
-            value={userInput}
-            onChange={(e) => setUserInput(e.target.value)}
-            placeholder="Type or paste your news article here..."
-            disabled={isLoading}
-          />
-              
-          <button onClick={handlePredict} className="btn-green" disabled={isLoading}>
-            {isLoading ? <Loader2 className="spinner" /> : "🔍 Predict"}
-          </button>
-        </div>
+            <div className="step">
+              <label>Enter News Text:</label>
+              <textarea
+                className="select"
+                rows="5"
+                value={userInput}
+                onChange={(e) => setUserInput(e.target.value)}
+                placeholder="Type or paste your news article here..."
+                disabled={isLoading}
+              />
+                  
+              <button onClick={handlePredict} className="btn-green" disabled={isLoading}>
+                {isLoading ? <Loader2 className="spinner" /> : "🔍 Predict"}
+              </button>
+            </div>
 
-        {predictionResult && (
-          <motion.div
-            className="result-card"
-            style={{ backgroundColor: predictionResult.confidence > 0.85 ? '#dcfce7' : predictionResult.confidence > 0.6 ? '#fef9c3' : '#fee2e2' }}
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-          >
-            <h3 className={predictionResult.prediction === 'FAKE' ? 'text-red' : 'text-green'}>
-              {predictionResult.prediction === 'FAKE' ? '🚨 FAKE NEWS DETECTED' : '✅ REAL NEWS'}
-            </h3>
-            <p><strong>Confidence:</strong> {(predictionResult.confidence * 100).toFixed(2)}%</p>
-            <p className="subtext">
-              (Fake: {(predictionResult.fake_probability * 100).toFixed(2)}% | Real: {(predictionResult.real_probability * 100).toFixed(2)}%)
-            </p>
-            {predictionResult.negation_detected && (
-              <p className="subtext">⚠️ {predictionResult.negation_count} negation word(s) detected.</p>
+            {predictionResult && (
+              <motion.div
+                className="result-card"
+                style={{ backgroundColor: predictionResult.confidence > 0.85 ? '#dcfce7' : predictionResult.confidence > 0.6 ? '#fef9c3' : '#fee2e2' }}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+              >
+                <h3 className={predictionResult.prediction === 'FAKE' ? 'text-red' : 'text-green'}>
+                  {predictionResult.prediction === 'FAKE' ? '🚨 FAKE NEWS DETECTED' : '✅ REAL NEWS'}
+                </h3>
+                <p><strong>Confidence:</strong> {(predictionResult.confidence * 100).toFixed(2)}%</p>
+                <p className="subtext">
+                  (Fake: {(predictionResult.fake_probability * 100).toFixed(2)}% | Real: {(predictionResult.real_probability * 100).toFixed(2)}%)
+                </p>
+                {predictionResult.negation_detected && (
+                  <p className="subtext">⚠️ {predictionResult.negation_count} negation word(s) detected.</p>
+                )}
+                {predictionResult.processed_text && (
+                  <p className="subtext">🔍 Processed Text: {predictionResult.processed_text}</p>
+                )}
+              </motion.div>
             )}
-            {predictionResult.processed_text && (
-              <p className="subtext">🔍 Processed Text: {predictionResult.processed_text}</p>
+
+            {predictionResult && (
+              <div style={{ marginTop: '1rem' }}>
+                <button className="btn-purple" onClick={handleDownload}>
+                  🎓 Download Certificate
+                </button>
+                <button className="btn-green" onClick={() => { setUserInput(''); setPredictionResult(null); }}>
+                  🧹 Clear
+                </button>
+              </div>
             )}
-          </motion.div>
+
+            <div style={{ marginTop: '1rem' }}>
+              <button className="btn-purple" onClick={() => setPage('charts')}>
+                📊 View Training Metrics
+              </button>
+            </div>
+          </>
         )}
 
-        {predictionResult && (
-          <div style={{ marginTop: '1rem' }}>
-            <button className="btn-purple" onClick={handleDownload}>
-              🎓 Download Certificate
+        {page === 'charts' && (
+          <>
+            <h1 className="title">📈 Training Metrics</h1>
+
+            <div className="image-grid">
+              {[
+                "training_metrics.png",
+                "confusion_matrix.png",
+                "roc_curve.png",
+                "precision_recall_curve.png",
+                "score_distribution.png",
+                "cost_benefit_analysis.png"
+              ].map((img, idx) => (
+                <img
+                  key={idx}
+                  src={`${backendUrl}/static/${img}`}
+                  alt={img}
+                  className="chart"
+                  onError={(e) => console.error(`Failed to load ${img}`, e)}
+                />
+              ))}
+            </div>
+
+            <button className="btn-green" style={{ marginTop: '1.5rem' }} onClick={() => setPage('predict')}>
+              🔙 Back to Prediction
             </button>
-          <button className="btn-green" onClick={() => {setUserInput('');
-                                                        setPredictionResult(null);}}> Clear </button>
-          </div>
+          </>
         )}
       </motion.div>
     </div>
