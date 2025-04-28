@@ -26,27 +26,36 @@ export default function App() {
   }, []);
 
   const handleTrain = async () => {
-    setTraining(true);
-    setStep(2);
+  setTraining(true);
+  setStep(2);
 
-    try {
-      const response = await fetch('https://fake-news-detection-fcr3.onrender.com/train', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: selectedModel })
-      });
-      const data = await response.json();
-      console.log('Training complete:', data);
+  try {
+    const response = await fetch('https://fake-news-detection-fcr3.onrender.com/train', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: selectedModel })
+    });
 
-      const metricsRes = await fetch('https://fake-news-detection-fcr3.onrender.com/metrics');
-      const metrics = await metricsRes.json();
-      setTrainingImages(metrics.images);
-      setStep(3);
-    } catch (error) {
-      console.error('Training error:', error);
-      setTraining(false);
+    if (!response.ok) {
+      throw new Error('Training failed');
     }
-  };
+
+    const data = await response.json();
+    console.log('Training complete:', data);
+
+    const metricsRes = await fetch('https://fake-news-detection-fcr3.onrender.com/metrics');
+    const metrics = await metricsRes.json();
+    setTrainingImages(metrics.images);
+
+    // 🎯 After training, GO TO Step 3 (charts)
+    setStep(3);
+
+  } catch (error) {
+    console.error('Training error:', error);
+    setTraining(false);
+  }
+};
+
 
   const handleChartChange = (e) => {
     setSelectedChart(e.target.value);
