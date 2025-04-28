@@ -6,6 +6,8 @@ import html2canvas from 'html2canvas';
 import jsPDF from 'jspdf';
 
 export default function App() {
+  const backendUrl = "https://fake-news-detection-fcr3.onrender.com";
+
   const [selectedModel, setSelectedModel] = useState('bilstm.pt');
   const [isLoading, setIsLoading] = useState(false);
   const [userInput, setUserInput] = useState('');
@@ -18,7 +20,7 @@ export default function App() {
     setUserInput('');
     setIsLoading(true);
     try {
-      const response = await fetch(`http://localhost:5000/setup?model=${modelName}`);
+      const response = await fetch(`${backendUrl}/setup?model=${modelName}`);
       const data = await response.json();
       console.log('Setup complete:', data);
     } catch (error) {
@@ -35,7 +37,7 @@ export default function App() {
     }
     setIsLoading(true);
     try {
-      const res = await fetch('http://localhost:5000/predict', {
+      const res = await fetch(`${backendUrl}/predict`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ text: userInput })
@@ -57,7 +59,7 @@ export default function App() {
     if (!predictionResult) return;
 
     const logo = new Image();
-    logo.src = `${window.location.origin}/logo.png`; // Adjust if needed
+    logo.src = `${window.location.origin}/logo.png`; // Adjust if you put logo elsewhere
 
     logo.onload = () => {
       const pdf = new jsPDF('landscape', 'mm', 'a4');
