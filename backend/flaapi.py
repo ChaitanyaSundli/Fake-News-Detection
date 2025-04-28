@@ -4,7 +4,7 @@ import torch
 import os
 
 from fakenewscode import (
-    setup_and_prepare, TextVectorizer, BiLSTMAttention,
+    TextVectorizer, BiLSTMAttention,
     preprocess_text, contains_negation
 )
 
@@ -24,24 +24,23 @@ def setup():
     model_name = request.args.get("model", "bilstm.pt")
 
     try:
-        # Step 1: Create empty vectorizer
+        # Step 1: Load vectorizer
         vectorizer = TextVectorizer()
 
-        # Step 2: Load word index mapping
-        if os.path.exists("word_index.pt"):
-            word_index = torch.load("word_index.pt")
+        word_index_path = os.path.join("models", "word_index.pt")
+        if os.path.exists(word_index_path):
+            word_index = torch.load(word_index_path)
             vectorizer.word_index = word_index
             vectorizer.vocab_size = len(word_index)
             print(f"✅ Loaded vocabulary with {vectorizer.vocab_size} words.")
         else:
             return jsonify({"error": "Word index file not found!"}), 500
 
-        # Step 3: Create model
-        model = BiLSTMAttention(vectorizer.vocab_size).to(device)
-
-        # Step 4: Load model weights
-        if os.path.exists(model_name):
-            model.load_state_dict(torch.load(model_name, map_location=device))
+        # Step 2: Create model and load weights
+        model_path = os.path.join("models", model_name)
+        if os.path.exists(model_path):
+            model = BiLSTMAttention(vectorizer.vocab_size).to(device)
+            model.load_state_dict(torch.load(model_path, map_location=device))
             model.eval()
             current_model_name = model_name
             print(f"✅ Model '{model_name}' loaded successfully.")
@@ -51,20 +50,20 @@ def setup():
         return jsonify({"status": "Model setup complete", "model": model_name})
 
     except Exception as e:
+        print(f"❌ Setup error: {e}")
         return jsonify({"error": str(e)}), 500
-
 
 @app.route("/predict", methods=["POST"])
 def predict():
     global vectorizer, model
     try:
         if model is None or vectorizer is None:
-            return jsonify({"error": "Model not initialized. Call /setup first."}), 500
+            return jsonify({"error": "Model not initialized. Please run /setup first."}), 500
 
         data = request.get_json()
         text = data.get("text", "")
         if len(text.strip()) < 10:
-            return jsonify({"error": "Text too short."}), 400
+            return jsonify({"error": "Text is too short."}), 400
 
         processed_text = preprocess_text(text)
         negation_info = contains_negation(text)
@@ -79,6 +78,7 @@ def predict():
         fake_prob = probs[0, 1].item()
         real_prob = probs[0, 0].item()
 
+        # Adjust for negations
         if negation_info['has_negation']:
             fake_prob, real_prob = real_prob, fake_prob
 
@@ -95,7 +95,9 @@ def predict():
         })
 
     except Exception as e:
+        print(f"❌ Prediction error: {e}")
         return jsonify({"error": str(e)}), 500
 
 if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=int(os.environ.get("PORT", 5000)), debug=False)
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host="0.0.0.0", port=port, debug=False)
