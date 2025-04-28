@@ -169,6 +169,8 @@ export default function App() {
             <button className="btn-purple" onClick={handleDownload}>
               🎓 Download Certificate
             </button>
+          <button className="btn-green" onClick={() => {setUserInput('');
+                                                        setPredictionResult(null);}}> Clear </button>
           </div>
         )}
       </motion.div>
