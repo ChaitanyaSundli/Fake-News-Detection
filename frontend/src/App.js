@@ -135,12 +135,7 @@ export default function App() {
             placeholder="Type or paste your news article here..."
             disabled={isLoading}
           />
-
-          <div className="example-buttons">
-            <button onClick={() => setUserInput("Breaking: The president has signed a new executive order...")}>Example 1</button>
-            <button onClick={() => setUserInput("NASA confirms Earth has two moons!")}>Example 2</button>
-          </div>
-
+              
           <button onClick={handlePredict} className="btn-green" disabled={isLoading}>
             {isLoading ? <Loader2 className="spinner" /> : "🔍 Predict"}
           </button>
