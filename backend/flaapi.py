@@ -18,6 +18,14 @@ vectorizer = None
 model = None
 current_model_name = None
 
+# Define BiLSTM hyperparameters (must match training time values)
+EMBEDDING_DIM = 100
+HIDDEN_DIM = 128
+OUTPUT_DIM = 2
+N_LAYERS = 2
+DROPOUT = 0.5
+PAD_IDX = 0
+
 @app.route("/setup", methods=["GET"])
 def setup():
     global vectorizer, model, current_model_name
@@ -39,7 +47,16 @@ def setup():
         # Step 2: Create model and load weights
         model_path = os.path.join("models", model_name)
         if os.path.exists(model_path):
-            model = BiLSTMAttention(vectorizer.vocab_size).to(device)
+            # Properly initialize BiLSTMAttention with all required params
+            model = BiLSTMAttention(
+                vocab_size=vectorizer.vocab_size,
+                embedding_dim=EMBEDDING_DIM,
+                hidden_dim=HIDDEN_DIM,
+                output_dim=OUTPUT_DIM,
+                n_layers=N_LAYERS,
+                dropout=DROPOUT,
+                pad_idx=PAD_IDX
+            ).to(device)
             model.load_state_dict(torch.load(model_path, map_location=device))
             model.eval()
             current_model_name = model_name
