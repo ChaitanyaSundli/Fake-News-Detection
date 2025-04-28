@@ -4,7 +4,7 @@ import torch
 import os
 
 from fakenewscode import (
-    TextVectorizer, BiLSTMAttention,
+    TextVectorizer, BiLSTMAttention, TextCNN, LSTMClassifier,
     preprocess_text, contains_negation
 )
 
@@ -17,14 +17,6 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 vectorizer = None
 model = None
 current_model_name = None
-
-# Define BiLSTM hyperparameters (must match training time values)
-EMBEDDING_DIM = 100
-HIDDEN_DIM = 128
-OUTPUT_DIM = 2
-N_LAYERS = 2
-DROPOUT = 0.5
-PAD_IDX = 0
 
 @app.route("/setup", methods=["GET"])
 def setup():
@@ -44,23 +36,57 @@ def setup():
         else:
             return jsonify({"error": "Word index file not found!"}), 500
 
-        # Step 2: Create model and load weights
+        # Step 2: Create correct model based on selection
         model_path = os.path.join("models", model_name)
         if os.path.exists(model_path):
-            # Properly initialize BiLSTMAttention with all required params
-            model = BiLSTMAttention(
-                vocab_size=vectorizer.vocab_size,
-                embedding_dim=EMBEDDING_DIM,
-                hidden_dim=HIDDEN_DIM,
-                output_dim=OUTPUT_DIM,
-                n_layers=N_LAYERS,
-                dropout=DROPOUT,
-                pad_idx=PAD_IDX
-            ).to(device)
+            vocab_size = vectorizer.vocab_size
+            pad_idx = 0
+
+            if model_name == "bilstm.pt":
+                # BiLSTM hyperparameters
+                model = BiLSTMAttention(
+                    vocab_size=vocab_size,
+                    embedding_dim=100,
+                    hidden_dim=128,
+                    output_dim=2,
+                    n_layers=2,
+                    dropout=0.5,
+                    pad_idx=pad_idx
+                ).to(device)
+
+            elif model_name == "cnn.pt":
+                # CNN hyperparameters
+                model = TextCNN(
+                    vocab_size=vocab_size,
+                    embedding_dim=100,
+                    n_filters=100,
+                    filter_sizes=[2, 3, 4, 5],
+                    output_dim=2,
+                    dropout=0.5,
+                    pad_idx=pad_idx
+                ).to(device)
+
+            elif model_name == "lstm.pt":
+                # LSTM hyperparameters
+                model = LSTMClassifier(
+                    vocab_size=vocab_size,
+                    embedding_dim=100,
+                    hidden_dim=128,
+                    output_dim=2,
+                    n_layers=2,
+                    bidirectional=True,
+                    dropout=0.5,
+                    pad_idx=pad_idx
+                ).to(device)
+
+            else:
+                return jsonify({"error": "Unsupported model selected."}), 400
+
             model.load_state_dict(torch.load(model_path, map_location=device))
             model.eval()
             current_model_name = model_name
             print(f"✅ Model '{model_name}' loaded successfully.")
+
         else:
             return jsonify({"error": f"Model file '{model_name}' not found."}), 404
 
