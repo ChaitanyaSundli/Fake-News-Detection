@@ -75,7 +75,7 @@ export default function App() {
     // === BORDER ===
     pdf.setLineWidth(1.2);
     pdf.setDrawColor(0, 255, 255); // Neon cyan
-    pdf.rect(10, 10, pageWidth - 20, pageHeight - 20, 'D'); // Inner margin rectangle
+    pdf.rect(10, 10, pageWidth - 17.5, pageHeight - 17.5, 'D'); // Inner margin rectangle
 
     // Logo
     pdf.addImage(logo, 'PNG', pageWidth / 2 - 20, 15, 40, 40);
@@ -94,20 +94,20 @@ export default function App() {
     pdf.setFontSize(16);
     pdf.setTextColor(226, 232, 240);
     pdf.setFont("helvetica", "normal");
-    pdf.text(`📰 Article Status: ${predictionResult.prediction}`, pageWidth / 2, 85, { align: 'center' });
-    pdf.text(`🎯 Confidence: ${conf}%`, pageWidth / 2, 95, { align: 'center' });
+    pdf.text(`Article Status: ${predictionResult.prediction}`, pageWidth / 2, 85, { align: 'center' });
+    pdf.text(`Confidence: ${conf}%`, pageWidth / 2, 95, { align: 'center' });
     pdf.text(`(Fake: ${fake}% | Real: ${real}%)`, pageWidth / 2, 105, { align: 'center' });
 
     if (predictionResult.negation_detected) {
-      pdf.text(`⚠️ Negation Words Detected: ${predictionResult.negation_count}`, pageWidth / 2, 115, { align: 'center' });
+      pdf.text(`Negation Words Detected: ${predictionResult.negation_count}`, pageWidth / 2, 115, { align: 'center' });
     }
 
-    pdf.text(`🕒 Verified on: ${new Date().toLocaleString()}`, pageWidth / 2, 125, { align: 'center' });
+    pdf.text(`Verified on: ${new Date().toLocaleString()}`, pageWidth / 2, 125, { align: 'center' });
 
     // Verified text block
     pdf.setFontSize(12);
     pdf.setTextColor(192, 192, 192);
-    pdf.text('📄 Verified Text:', 20, 145);
+    pdf.text('Verified Text:', 20, 145);
 
     const splitText = pdf.splitTextToSize(predictionResult.processed_text || userInput, pageWidth - 40);
     pdf.text(splitText, 20, 153);
