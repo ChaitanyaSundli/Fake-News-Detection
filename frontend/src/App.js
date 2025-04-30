@@ -212,9 +212,7 @@ export default function App() {
         )}
 
         {page === 'charts' && (
-          <>
             <h1 className="title">📈 Training Metrics</h1>
-
             <div className="step">
               <label>Select a Chart:</label>
               <select
@@ -227,10 +225,9 @@ export default function App() {
                 <option value="roc_curve.png">ROC Curve</option>
                 <option value="precision_recall_curve.png">Precision-Recall Curve</option>
                 <option value="score_distribution.png">Score Distribution</option>
-                <option value="cost_benefit_analysis.png">Cost Benefit Analysis</option>
               </select>
             </div>
-
+                  
             <div className="image-grid" style={{ marginTop: '2rem' }}>
               <img
                 src={`${backendUrl}/static/${selectedChart}`}
