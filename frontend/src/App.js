@@ -212,6 +212,7 @@ export default function App() {
         )}
 
         {page === 'charts' && (
+          <>
             <h1 className="title">📈 Training Metrics</h1>
             <div className="step">
               <label>Select a Chart:</label>
