@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify
+from flask import Flask, request, jsonify, send_from_directory
 from flask_cors import CORS
 import torch
 import os
@@ -17,6 +17,11 @@ device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 vectorizer = None
 model = None
 current_model_name = None
+
+# ✅ Serve static folder correctly
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory('static', filename)
 
 @app.route("/setup", methods=["GET"])
 def setup():
