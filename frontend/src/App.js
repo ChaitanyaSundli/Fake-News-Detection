@@ -111,13 +111,12 @@ export default function App() {
     };
   };
 
-  // Run default model setup on first load
+  
   useEffect(() => {
     handleModelChange({ target: { value: selectedModel } });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Chart cache-busting effect
   useEffect(() => {
     if (page === 'charts' && selectedChart) {
       const freshUrl = `${backendUrl}/static/${selectedChart}?t=${Date.now()}`;
