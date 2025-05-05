@@ -13,12 +13,12 @@ CORS(app)
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-# Global objects
+
 vectorizer = None
 model = None
 current_model_name = None
 
-# ✅ Serve static folder correctly
+
 @app.route('/static/<path:filename>')
 def serve_static(filename):
     return send_from_directory('static', filename)
@@ -29,7 +29,7 @@ def setup():
     model_name = request.args.get("model", "bilstm.pt")
 
     try:
-        # Step 1: Load vectorizer
+        
         vectorizer = TextVectorizer()
 
         word_index_path = os.path.join("models", "word_index.pt")
@@ -41,14 +41,14 @@ def setup():
         else:
             return jsonify({"error": "Word index file not found!"}), 500
 
-        # Step 2: Create correct model based on selection
+       
         model_path = os.path.join("models", model_name)
         if os.path.exists(model_path):
             vocab_size = vectorizer.vocab_size
             pad_idx = 0
 
             if model_name == "bilstm.pt":
-                # BiLSTM hyperparameters
+              
                 model = BiLSTMAttention(
                     vocab_size=vocab_size,
                     embedding_dim=100,
@@ -60,7 +60,7 @@ def setup():
                 ).to(device)
 
             elif model_name == "cnn.pt":
-                # CNN hyperparameters
+               
                 model = TextCNN(
                     vocab_size=vocab_size,
                     embedding_dim=100,
@@ -72,7 +72,7 @@ def setup():
                 ).to(device)
 
             elif model_name == "lstm.pt":
-                # LSTM hyperparameters
+                
                 model = LSTMClassifier(
                     vocab_size=vocab_size,
                     embedding_dim=100,
@@ -126,7 +126,7 @@ def predict():
         fake_prob = probs[0, 1].item()
         real_prob = probs[0, 0].item()
 
-        # Adjust for negations
+      
         if negation_info['has_negation']:
             fake_prob, real_prob = real_prob, fake_prob
 
